@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="ru">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <title>Console-type CV</title>
+      <link rel="icon" type="image/png" href="/template/terminal.png">
+      <style>
+         * {
+         margin: 0;
+         padding: 0;
+         box-sizing: border-box;
+         }
+         body {
+         background-color: #000;
+         color: #00bfff;
+         font-family: 'Courier New', monospace;
+         padding: 20px;
+         height: 100vh;
+         overflow: scroll;
+         position: relative;
+         transition: background-color 0.8s ease, color 0.8s ease;
+         }
+         /* === ЭФФЕКТ ПЕРЕХОДА МЕЖДУ ТЕМАМИ === */
+         #themeTransition {
+         position: fixed;
+         top: 0; left: 0;
+         width: 100%;
+         height: 100%;
+         background: #000;
+         pointer-events: none;
+         z-index: 9998;
+         opacity: 0;
+         transition: opacity 0.6s ease-in-out;
+         }
+         body.transition-active #themeTransition {
+         opacity: 1;
+         }
+         /* === АНИМИРОВАННЫЙ ФОН КИБЕРПАНК === */
+         .cyber-bg {
+         position: fixed;
+         top: 0; left: 0; width: 100%; height: 100%;
+         z-index: -3;
+         pointer-events: none;
+         overflow: hidden;
+         }
+         .cyber-bg::before {
+         content: "";
+         position: absolute;
+         top: 0; left: 0;
+         width: 200%;
+         height: 200%;
+         background: 
+         repeating-linear-gradient(
+         45deg,
+         transparent,
+         transparent 10px,
+         rgba(0, 191, 255, 0.05) 10px,
+         rgba(0, 191, 255, 0.1) 20px
+         ),
+         repeating-linear-gradient(
+         45deg,
+         rgba(138, 43, 226, 0.05),
+         rgba(138, 43, 226, 0.05) 15px,
+         transparent 15px,
+         transparent 30px
+         );
+         background-size: 60px 60px;
+         animation: cyberMove 20s linear infinite;
+         opacity: 0.4;
+         }
+         @keyframes cyberMove {
+         0% { transform: translate(-50%, -50%) rotate(0deg); }
+         100% { transform: translate(0%, 0%) rotate(360deg); }
+         }
+         /* === СКАНИРУЮЩАЯ ЛИНИЯ (CRT) === */
+         .scanline {
+         position: fixed;
+         top: 0; left: 0; width: 100%; height: 100%;
+         background: linear-gradient(
+         to bottom,
+         transparent,
+         transparent 49%,
+         rgba(0, 0, 0, 0.1) 50%,
+         transparent 51%,
+         transparent
+         );
+         background-size: 100% 4px;
+         background-repeat: repeat-y;
+         animation: scanline 8s linear infinite;
+         pointer-events: none;
+         z-index: -1;
+         opacity: 0.3;
+         }
+         @keyframes scanline {
+         0% { background-position: 0 0; }
+         100% { background-position: 0 100%; }
+         }
+         /* === КОНСОЛЬ === */
+         #console {
+         opacity: 0;
+         transition: opacity 3s ease-out;
+         height: 100%;
+         display: flex;
+         flex-direction: column;
+         padding: 20px;
+         z-index: 10;
+         }
+         .line {
+         line-height: 2.2;
+         font-size: 1.4em;
+         text-shadow: 
+         0 0 8px rgba(0, 191, 255, 0.7),
+         0 0 2px #00bfff;
+         letter-spacing: 0.5px;
+         }
+         .progress-line {
+         font-size: 1.3em;
+         line-height: 2;
+         color: #00bfff;
+         text-shadow: 0 0 6px rgba(0, 191, 255, 0.6);
+         display: flex;
+         align-items: center;
+         }
+         .progress-bar {
+         width: 120px;
+         height: 16px;
+         background: #0f0f0f;
+         border: 1px solid #00bfff;
+         margin-right: 12px;
+         display: flex;
+         overflow: hidden;
+         border-radius: 2px;
+         }
+         .progress-fill {
+         background: #00bfff;
+         height: 100%;
+         transition: width 0.8s ease-out;
+         }
+         .status-offline {
+         color: #ff3333;
+         text-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
+         animation: pulseRed 1s infinite;
+         }
+         .status-online {
+         color: #00ff00;
+         text-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+         animation: pulseGreen 1s infinite;
+         }
+         @keyframes pulseRed {
+         0%, 100% { opacity: 1; }
+         50% { opacity: 0.7; }
+         }
+         @keyframes pulseGreen {
+         0%, 100% { opacity: 1; }
+         50% { opacity: 0.7; }
+         }
+         .cursor {
+         display: inline-block;
+         width: 14px;
+         height: 24px;
+         background: #00bfff;
+         margin-left: 8px;
+         animation: blink 1s step-end infinite;
+         vertical-align: middle;
+         }
+         @keyframes blink {
+         0%, 100% { opacity: 1; }
+         50% { opacity: 0; }
+         }
+         /* === ГЛАВНАЯ СТРАНИЦА — ЭФФЕКТЫ === */
+         #mainContent {
+         display: none;
+         opacity: 0;
+         transition: opacity 2s ease;
+         padding: 50px;
+         color: #e0f7fa;
+         }
+         #mainContent h1 {
+         color: #00bfff;
+         font-size: 32px;
+         margin-bottom: 16px;
+         text-shadow: 0 0 10px rgba(0, 191, 255, 0.4), 0 0 2px #00bfff;
+         animation: glow 2s ease-in-out infinite alternate;
+         }
+         @keyframes glow {
+         from { text-shadow: 0 0 5px #00bfff; }
+         to { text-shadow: 0 0 20px #00bfff, 0 0 30px #00bfff; }
+         }
+         #mainContent p {
+         line-height: 1.8;
+         font-size: 18px;
+         margin-bottom: 16px;
+         animation: fadeInUp 1s ease-out;
+         }
+         @keyframes fadeInUp {
+         from {
+         opacity: 0;
+         transform: translateY(20px);
+         }
+         to {
+         opacity: 1;
+         transform: translateY(0);
+         }
+         }
+         #mainContent h3 {
+         color: #00bfff;
+         font-size: 22px;
+         margin: 24px 0 12px 0;
+         text-shadow: 0 0 6px rgba(0, 191, 255, 0.3);
+         }
+         #mainContent ul {
+         list-style: none;
+         padding: 0;
+         }
+         #mainContent li {
+         margin: 10px 0;
+         animation: fadeInLeft 0.8s ease-out;
+         }
+         @keyframes fadeInLeft {
+         from {
+         opacity: 0;
+         transform: translateX(-30px);
+         }
+         to {
+         opacity: 1;
+         transform: translateX(0);
+         }
+         }
+         #mainContent a {
+         color: #4fc3f7;
+         text-decoration: none;
+         transition: color 0.3s;
+         }
+         #mainContent a:hover {
+         color: #00eaff;
+         text-shadow: 0 0 5px rgba(0, 234, 255, 0.5);
+         }
+         .contact-item {
+         font-size: 18px;
+         margin: 8px 0;
+         animation: fadeInRight 0.8s ease-out;
+         }
+         @keyframes fadeInRight {
+         from {
+         opacity: 0;
+         transform: translateX(30px);
+         }
+         to {
+         opacity: 1;
+         transform: translateX(0);
+         }
+         }
+         .resume-container {
+         display: flex;
+         flex-wrap: wrap;
+         gap: 40px;
+         align-items: flex-start;
+         max-width: 1200px;
+         margin: 0 auto;
+         }
+         .resume-text {
+         flex: 1;
+         min-width: 300px;
+         }
+         .resume-photo {
+         flex: 1;
+         min-width: 280px;
+         display: flex;
+         justify-content: center;
+         }
+         .resume-photo img {
+         max-width: 100%;
+         height: auto;
+         border-radius: 10px;
+         border: 2px solid #00bfff;
+         box-shadow: 0 0 20px rgba(0, 191, 255, 0.4);
+         transition: transform 0.3s ease;
+         }
+         .resume-photo img:hover {
+         transform: scale(1.03);
+         }
+         #dynamicText {
+         font-size: 2.8em !important;
+         text-shadow: 0 0 10px rgba(0, 191, 255, 0.7);
+         font-weight: bold;
+         }
+         /* === КНОПКА ACCEPT === */
+         #acceptBtn {
+         align-self: flex-start;
+         margin-top: 30px;
+         padding: 12px 24px;
+         background: rgba(0, 191, 255, 0.1);
+         color: #00bfff;
+         border: 1px solid #00bfff;
+         font-family: 'Courier New', monospace;
+         font-size: 1.2em;
+         cursor: pointer;
+         opacity: 0;
+         transition: all 0.8s ease;
+         backdrop-filter: blur(2px);
+         box-shadow: 0 0 15px rgba(0, 191, 255, 0.3);
+         }
+         #acceptBtn:hover {
+         background: rgba(0, 191, 255, 0.25);
+         transform: scale(1.05);
+         box-shadow: 0 0 20px rgba(0, 191, 255, 0.6);
+         }
+         /* === КНОПКА СМЕНЫ ТЕМЫ === */
+         #themeToggle {
+         position: fixed;
+         top: 20px;
+         right: 20px;
+         width: 50px;
+         height: 50px;
+         border-radius: 50%;
+         background: rgba(0, 0, 0, 0.3);
+         border: 1px solid #00bfff;
+         color: #00bfff;
+         font-size: 20px;
+         cursor: pointer;
+         z-index: 1000;
+         box-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
+         transition: all 0.4s ease;
+         backdrop-filter: blur(4px);
+         }
+         #themeToggle:hover {
+         transform: scale(1.1);
+         box-shadow: 0 0 15px rgba(0, 191, 255, 0.8);
+         }
+         /* === КНОПКА ЯЗЫКА === */
+         #langToggle {
+         position: fixed;
+         top: 20px;
+         right: 80px;
+         width: 50px;
+         height: 50px;
+         border-radius: 50%;
+         background: rgba(0, 0, 0, 0.3);
+         border: 1px solid #00bfff;
+         color: #00bfff;
+         font-size: 16px;
+         cursor: pointer;
+         z-index: 1000;
+         box-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
+         transition: all 0.4s ease;
+         backdrop-filter: blur(4px);
+         }
+         #langToggle:hover {
+         transform: scale(1.1);
+         box-shadow: 0 0 15px rgba(0, 191, 255, 0.8);
+         }
+         /* === ТЕМЫ === */
+         body.theme-dark {
+         background-color: #000;
+         color: #00bfff;
+         }
+         body.theme-dark .cyber-bg::before {
+         opacity: 0.4;
+         background: 
+         repeating-linear-gradient(
+         45deg,
+         transparent,
+         transparent 10px,
+         rgba(0, 191, 255, 0.05) 10px,
+         rgba(0, 191, 255, 0.1) 20px
+         ),
+         repeating-linear-gradient(
+         45deg,
+         rgba(138, 43, 226, 0.05),
+         rgba(138, 43, 226, 0.05) 15px,
+         transparent 15px,
+         transparent 30px
+         );
+         }
+         body.theme-dark .cursor-dot { background: #00bfff; box-shadow: 0 0 8px #00bfff; }
+         body.theme-dark .cursor-dot.primary { background: #00ffff; box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff; }
+         body.theme-dark .scanline { opacity: 0.3; }
+         body.theme-light {
+         background-color: #fff;
+         color: #000;
+         }
+         body.theme-light .cyber-bg::before {
+         opacity: 0.15;
+         background: 
+         repeating-linear-gradient(
+         45deg,
+         transparent,
+         transparent 10px,
+         rgba(0, 0, 0, 0.03) 10px,
+         rgba(0, 0, 0, 0.06) 20px
+         );
+         }
+         body.theme-light .line,
+         body.theme-light .progress-line {
+         color: #000 !important;
+         text-shadow: none !important;
+         }
+         body.theme-light #connectionStatus.status-online {
+         color: #00aa00 !important;
+         text-shadow: none;
+         }
+         body.theme-light .glitch {
+         color: #000;
+         }
+         body.theme-light .glitch::before,
+         body.theme-light .glitch::after {
+         display: none;
+         }
+         body.theme-light .cursor-dot {
+         background: #333;
+         box-shadow: 0 0 4px #333;
+         }
+         body.theme-light .cursor-dot.primary {
+         background: #000;
+         box-shadow: 0 0 6px #000;
+         }
+         body.theme-light .scanline {
+         opacity: 0.1;
+         }
+         body.theme-light #mainContent h1,
+         body.theme-light #mainContent h3,
+         body.theme-light #mainContent p {
+         color: #000;
+         text-shadow: none;
+         }
+         body.theme-light #mainContent a {
+         color: #0066cc;
+         }
+         body.theme-light #acceptBtn {
+         color: #0066cc;
+         border-color: #0066cc;
+         }
+         body.theme-neon {
+         background-color: #000;
+         color: #ff00ff;
+         }
+         body.theme-neon .cyber-bg::before {
+         opacity: 0.6;
+         background: 
+         repeating-linear-gradient(
+         45deg,
+         transparent,
+         transparent 8px,
+         rgba(255, 0, 255, 0.1) 8px,
+         rgba(255, 0, 255, 0.2) 16px
+         ),
+         repeating-linear-gradient(
+         45deg,
+         rgba(0, 255, 255, 0.1),
+         rgba(0, 255, 255, 0.1) 12px,
+         transparent 12px,
+         transparent 24px
+         );
+         animation-duration: 10s;
+         }
+         body.theme-neon .line,
+         body.theme-neon .progress-line {
+         color: #00ffff;
+         text-shadow: 
+         0 0 5px #00ffff,
+         0 0 10px #00ffff,
+         0 0 20px #00ffff;
+         font-weight: bold;
+         }
+         body.theme-neon #connectionStatus.status-online {
+         color: #00ff00;
+         text-shadow: 0 0 10px #00ff00;
+         }
+         body.theme-neon .cursor-dot {
+         background: #00ffff;
+         box-shadow: 0 0 8px #00ffff, 0 0 15px #00ffff;
+         }
+         body.theme-neon .cursor-dot.primary {
+         background: #ff00ff;
+         box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 30px #ff00ff;
+         }
+         body.theme-neon .scanline {
+         opacity: 0.5;
+         }
+         body.theme-neon #mainContent h1,
+         body.theme-neon #mainContent h3 {
+         color: #ff00ff;
+         text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+         }
+         body.theme-neon #mainContent a {
+         color: #00ffff;
+         }
+         body.theme-neon #acceptBtn {
+         color: #ff00ff;
+         border-color: #ff00ff;
+         box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+         }
+         /* === СЛЕД ЗА МЫШЬЮ (УПРОЩЁННЫЙ ШЛЕЙФ) === */
+         .mouse-trail {
+         position: fixed;
+         top: 0;
+         left: 0;
+         pointer-events: none;
+         z-index: 9999;
+         }
+         .trail-dot {
+         position: absolute;
+         width: 4px;
+         height: 4px;
+         border-radius: 50%;
+         background: linear-gradient(45deg, #ff5555, #00bfff);
+         box-shadow: 0 0 6px currentColor;
+         opacity: 0.7;
+         transform: translate(-50%, -50%);
+         transition: opacity 0.5s ease, transform 0.5s ease;
+         }
+         .trail-dot.fade-out {
+         opacity: 0;
+         transform: translate(-50%, -50%) scale(0.5);
+         }
+
+
+
+
+         /*CLI TASKS STYLESHEET*/
+         #body-terminal {
+
+         }
+
+         #terminal {
+            background-color: #0c0c0c;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+
+
+            max-width: 800px;
+            margin: 40px auto;
+            border: 1px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+         }
+
+         #output {
+            min-height: 400px;
+            max-height: 600px;
+            padding: 15px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            line-height: 1.6;
+         }
+
+         #input-line {
+            display: flex;
+            background-color: #1e1e1e;
+            padding: 12px 15px;
+            border-top: 1px solid #444;
+         }
+
+         .prompt {
+            color: #0ff;
+            font-weight: bold;
+            margin-right: 10px;
+         }
+
+         #cli-input {
+            background: transparent;
+            border: none;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            outline: none;
+            flex: 1;
+         }
+
+         .blink-caret::after {
+            content: '';
+            width: 8px;
+            height: 16px;
+            background: #0f0;
+            margin-left: 4px;
+            display: inline-block;
+            animation: blink 1s step-end infinite;
+         }
+
+         @keyframes blink {
+            from, to { opacity: 1; }
+            50% { opacity: 0; }
+         }
+
+         /* Scrollbar styling */
+         #output::-webkit-scrollbar {
+            width: 8px;
+         }
+         #output::-webkit-scrollbar-track {
+            background: #111;
+         }
+         #output::-webkit-scrollbar-thumb {
+            background: #0f0;
+            border-radius: 4px;
+         }
+
+
+
+      </style>
+   </head>
+   <body class="theme-dark">
+      <!-- ЭФФЕКТ ПЕРЕХОДА -->
+      <div id="themeTransition"></div>
+      <!-- АНИМИРОВАННЫЙ ФОН -->
+      <div class="cyber-bg"></div>
+      <div class="scanline"></div>
+      <!-- СЛЕД ЗА МЫШЬЮ -->
+      <div class="mouse-trail" id="mouseTrail"></div>
+      <!-- КНОПКИ -->
+      <button id="themeToggle" aria-label="Switch theme"></button>
+      <button id="langToggle" aria-label="Switch language">RU</button>
+      <!-- === КОНСОЛЬ === -->
+      <div id="console">
+         <p class="line">[✓] Secure terminal initialized...</p>
+         <p class="line">[~] Connection: <span id="connectionStatus" class="status-offline">OFFLINE</span></p>
+         <p class="line">[~] Scanning system modules...</p>
+         <div class="progress-line">
+            <div class="progress-bar">
+               <div class="progress-fill" style="width: 10%"></div>
+            </div>
+            <span>10% — loading kernel</span>
+         </div>
+         <div class="progress-line">
+            <div class="progress-bar">
+               <div class="progress-fill" style="width: 30%"></div>
+            </div>
+            <span>30% — authenticating user</span>
+         </div>
+         <div class="progress-line">
+            <div class="progress-bar">
+               <div class="progress-fill" style="width: 70%"></div>
+            </div>
+            <span>70% — decrypting data stream</span>
+         </div>
+         <div class="progress-line">
+            <div class="progress-bar">
+               <div class="progress-fill" style="width: 100%"></div>
+            </div>
+            <span>100% — <span style="color:#00ff00">COMPLETE</span></span>
+         </div>
+         <p class="line glitch" data-text="Access granted. Welcome, Operator.">Access granted. Welcome, Operator.</p>
+         <p class="line">> Finalizing interface...</p>
+         <p class="line">> Rendering final authorization...</p>
+         <p class="line" id="dynamicText"></p>
+         <button id="acceptBtn">ACCEPT ALL</button>
+      </div>
+      <!-- === РЕЗЮМЕ === -->
+      <div id="mainContent">
+         <div class="resume-container">
+            <div class="resume-text">
+               <h1>Иван Есманчик</h1>
+               <p>
+                  <strong style="font-size: larger;">Разработчик ПО | Go, Python, Web</strong><br><br>
+                  <strong style="color: red;">S-Tier</strong> Front-end; Back-end; MicroServices;
+               </p>
+               <p>
+                  <strong style="color: orange;">A-Tier</strong> C++/C#/.NET
+               </p>
+               <!-- Контакты -->
+               <div>
+                  <h3>Контакты:</h3>
+                  <div class="contact-item">
+                     📧 <a href="mailto:vaniaes236@gmail.com">vaniaes236@gmail.com</a>
+                  </div>
+                  <div class="contact-item">
+                     💬 <a href="https://t.me/AgeInYear" target="_blank">@AgeInYear</a>
+                  </div>
+               </div>
+               <!-- Проекты -->
+               <div>
+                  <h3>Проекты:</h3>
+                  <ul>
+                     <li>
+                        <a href="https://github.com/yourname/project1" target="_blank">
+                        ➤ secure-proxy-go — защищённый прокси с TLS и аутентификацией
+                        </a>
+                     </li>
+                     <li>
+                        <a href="https://github.com/yourname/project2" target="_blank">
+                        ➤ logstream-cli — потоковая обработка логов в реальном времени
+                        </a>
+                     </li>
+                     <li>
+                        <a href="https://github.com/yourname/project3" target="_blank">
+                        ➤ configvault — шифрованное хранение конфигов
+                        </a>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+            <div class="resume-photo">
+               <a href="https://www.youtube.com/@ageinyear236"> <img src="photo.jpg"></a>
+            </div>
+         </div>
+
+         <div id="terminal">
+            <div id="output">
+               $ Welcome to CLI Todo v1.0
+               $ Type 'help' for commands.
+               $
+            </div>
+
+            <div id="input-line">
+               <span class="prompt">$</span>
+               <input type="text" id="cli-input" autofocus class="blink-caret" />
+            </div>
+         </div>
+      </div>
+
+
+
+
+      <script>
+         // === СЛЕД ЗА МЫШЬЮ (УПРОЩЁННЫЙ ШЛЕЙФ) ===
+         const mouseTrail = document.getElementById('mouseTrail');
+         const trailLength = 50;
+         const dots = [];
+         
+         for (let i = 0; i < trailLength; i++) {
+           const dot = document.createElement('div');
+           dot.className = 'trail-dot';
+           dot.style.opacity = 0;
+           mouseTrail.appendChild(dot);
+           dots.push(dot);
+         }
+         
+         let lastX = 0;
+         let lastY = 0;
+         
+         document.addEventListener('mousemove', (e) => {
+           lastX = e.clientX;
+           lastY = e.clientY;
+         
+           dots[0].style.left = `${lastX}px`;
+           dots[0].style.top = `${lastY}px`;
+           dots[0].style.opacity = 1;
+         
+           for (let i = 1; i < dots.length; i++) {
+             setTimeout(() => {
+               const prevDot = dots[i - 1];
+               const x = parseFloat(prevDot.style.left);
+               const y = parseFloat(prevDot.style.top);
+         
+               dots[i].style.left = `${x}px`;
+               dots[i].style.top = `${y}px`;
+               dots[i].style.opacity = 1;
+         
+               setTimeout(() => {
+                 dots[i].classList.add('fade-out');
+                 setTimeout(() => {
+                   dots[i].classList.remove('fade-out');
+                   dots[i].style.opacity = 0;
+                 }, 500);
+               }, 300);
+             }, i * 30);
+           }
+         });
+         
+         // === СМЕНА ТЕМЫ С АНИМАЦИЕЙ ===
+         const themeToggle = document.getElementById('themeToggle');
+         const transitionEl = document.getElementById('themeTransition');
+         let currentTheme = localStorage.getItem('theme') || 'dark';
+         
+         document.body.className = `theme-${currentTheme}`;
+         updateToggleIcon();
+         
+         themeToggle.addEventListener('click', () => {
+           themeToggle.disabled = true;
+           document.body.classList.add('transition-active');
+         
+           setTimeout(() => {
+             if (currentTheme === 'dark') {
+               currentTheme = 'light';
+             } else if (currentTheme === 'light') {
+               currentTheme = 'neon';
+             } else {
+               currentTheme = 'dark';
+             }
+         
+             document.body.className = `theme-${currentTheme}`;
+             localStorage.setItem('theme', currentTheme);
+             updateToggleIcon();
+           }, 300);
+         
+           setTimeout(() => {
+             document.body.classList.remove('transition-active');
+             themeToggle.disabled = false;
+           }, 600);
+         });
+         
+         function updateToggleIcon() {
+           const icons = {
+             dark: '⬛',
+             light: '⬜',
+             neon: '🟪'
+           };
+           themeToggle.textContent = icons[currentTheme];
+         }
+         
+         function updateConnectionStatus() {
+         const connectionStatus = document.getElementById('connectionStatus');
+         if (!connectionStatus) return;
+         
+         setTimeout(() => {
+         connectionStatus.textContent = "ONLINE";
+         connectionStatus.classList.remove('status-offline');
+         connectionStatus.classList.add('status-online');
+         }, 5500);
+         }
+         
+         // === ЛОКАЛИЗАЦИЯ ===
+         const langToggle = document.getElementById('langToggle');
+         let currentLang = localStorage.getItem('lang') || 'ru';
+         
+         let translations = {};
+         
+         async function loadTranslations(lang) {
+         try {
+         const res = await fetch(`/locales/${lang}.json`);
+         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+         translations = await res.json();
+         
+         if (document.readyState === 'loading') {
+           document.addEventListener('DOMContentLoaded', () => {
+             applyTranslations();
+             updateConnectionStatus();
+           });
+         } else {
+           applyTranslations();
+           updateConnectionStatus();
+         }
+         } catch (err) {
+         console.error("Failed to load translation", err);
+         }
+         }
+         
+         function applyTranslations() {
+         const consoleEl = document.getElementById('console');
+         if (!consoleEl) {
+         console.warn("Console element not ready yet. Delaying...");
+         setTimeout(applyTranslations, 100);
+         return;
+         }
+         
+         const line1 = document.querySelector('#console .line:nth-child(1)');
+         if (line1) line1.textContent = translations.secure_init;
+         
+         const connectionLine = document.querySelector('#console .line:nth-child(2)');
+         if (connectionLine) {
+         const span = connectionLine.querySelector('#connectionStatus');
+         const isCurrentlyOnline = span && span.classList.contains('status-online');
+         
+         const labelText = document.createTextNode(`[~] ${translations.connection}: `);
+         
+         connectionLine.innerHTML = '';
+         connectionLine.appendChild(labelText);
+         connectionLine.appendChild(span);
+         
+         if (span) {
+         span.textContent = isCurrentlyOnline ? 'ONLINE' : 'OFFLINE';
+         span.className = `status-${isCurrentlyOnline ? 'online' : 'offline'}`;
+         }
+         }
+         
+         const line3 = document.querySelector('#console .line:nth-child(3)');
+         if (line3) line3.textContent = translations.scanning;
+         
+         const progressSpans = document.querySelectorAll('.progress-line span');
+         if (progressSpans[0]) {
+         progressSpans[0].innerHTML = progressSpans[0].innerHTML.replace(/—.*$/, `— ${translations.loading_kernel}`);
+         }
+         if (progressSpans[1]) {
+         progressSpans[1].innerHTML = progressSpans[1].innerHTML.replace(/—.*$/, `— ${translations.auth_user}`);
+         }
+         if (progressSpans[2]) {
+         progressSpans[2].innerHTML = progressSpans[2].innerHTML.replace(/—.*$/, `— ${translations.decrypting}`);
+         }
+         if (progressSpans[3]) {
+         const completeSpan = progressSpans[3].querySelector('span');
+         if (completeSpan) completeSpan.textContent = translations.complete;
+         }
+         
+         const glitchEl = document.querySelector('.glitch');
+         if (glitchEl) {
+         const text = translations.access_granted;
+         glitchEl.textContent = text;
+         glitchEl.setAttribute('data-text', text);
+         }
+         
+         const finalizingLine = document.querySelector('#console .line:nth-child(7)');
+         if (finalizingLine) finalizingLine.textContent = translations.finalizing;
+         
+         const acceptBtn = document.getElementById('acceptBtn');
+         if (acceptBtn) acceptBtn.textContent = translations.accept_btn;
+         
+         const h1 = document.querySelector('#mainContent h1');
+         if (h1) h1.textContent = translations.welcome;
+         
+         const strong = document.querySelector('#mainContent strong');
+         if (strong) strong.textContent = translations.position;
+         
+         const ps = document.querySelectorAll('#mainContent p');
+         if (ps[0]) ps[0].innerHTML = `<strong>${translations.position}</strong><br><br>
+            <strong style="color: red">S-Tier: </strong>${translations.about1}`;
+         if (ps[1]) ps[1].innerHTML = `<strong style="color: yellow">A-Tier: </strong> ${translations.about2}`;
+         
+         const h3s = document.querySelectorAll('#mainContent h3');
+         if (h3s[0]) h3s[0].textContent = translations.contacts;
+         if (h3s[1]) h3s[1].textContent = translations.projects;
+         
+         const links = document.querySelectorAll('#mainContent ul a');
+         if (links[0]) links[0].textContent = translations.project1;
+         if (links[1]) links[1].textContent = translations.project2;
+         if (links[2]) links[2].textContent = translations.project3;
+         
+         updateLangButton();
+         }
+         
+         function updateLangButton() {
+           langToggle.textContent = currentLang.toUpperCase();
+         }
+         
+         langToggle.addEventListener('click', () => {
+           currentLang = currentLang === 'ru' ? 'en' : 'ru';
+           localStorage.setItem('lang', currentLang);
+           loadTranslations(currentLang);
+         });
+         
+         loadTranslations(currentLang);
+         
+         // === ЛОГИКА КОНСОЛИ ===
+         const consoleEl = document.getElementById('console');
+         const dynamicText = document.getElementById('dynamicText');
+         const acceptBtn = document.getElementById('acceptBtn');
+         const mainContent = document.getElementById('mainContent');
+         const connectionStatus = document.getElementById('connectionStatus');
+         
+         setTimeout(() => {
+           consoleEl.style.opacity = 1;
+         }, 1500);
+         
+         setTimeout(() => {
+           connectionStatus.textContent = "ONLINE";
+           connectionStatus.classList.remove('status-offline');
+           connectionStatus.classList.add('status-online');
+         }, 5500);
+         
+         setTimeout(() => {
+           let text = "ACCEPT ALL COOKIES...";
+           let i = 0;
+         
+           setTimeout(() => {
+             dynamicText.innerHTML = "> <span id='typing' style='font-size=12px'></span>";
+             const typing = document.getElementById('typing');
+             const typeInterval = setInterval(() => {
+               if (i < text.length) {
+                 typing.textContent += text[i];
+                 i++;
+               } else {
+                 clearInterval(typeInterval);
+                 setTimeout(() => {
+                   acceptBtn.style.opacity = 1;
+                 }, 800);
+               }
+             }, 140);
+           }, 1200);
+         }, 7000);
+         
+         acceptBtn.addEventListener('click', () => {
+           acceptBtn.disabled = true;
+           consoleEl.style.opacity = 0;
+         
+           setTimeout(() => {
+             consoleEl.style.display = 'none';
+             mainContent.style.display = 'block';
+             requestAnimationFrame(() => {
+               mainContent.style.opacity = 1;
+             });
+           }, 1000);
+         });
+      </script>
+
+      <script>
+         const output = document.getElementById('output');
+         const input = document.getElementById('cli-input');
+
+         function scrollOutput() {
+            output.scrollTop = output.scrollHeight;
+         }
+
+         function sendCommand(cmd) {
+            fetch('/api/command', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ command: cmd })
+            })
+                    .then(r => r.text())
+                    .then(resp => {
+                       if (resp.trim() === '\u001b[2J\u001b[H') {
+                          output.textContent = '$ ';
+                       } else {
+                          output.textContent += '\n$ ' + cmd + resp;
+                       }
+                       scrollOutput();
+                    })
+                    .catch(() => {
+                       output.textContent += `\n❌ Failed to reach server.`;
+                       scrollOutput();
+                    });
+         }
+
+         input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+               const cmd = input.value.trim();
+               if (cmd) {
+                  sendCommand(cmd);
+               }
+               input.value = '';
+            }
+         });
+
+         document.getElementById('terminal').addEventListener('click', () => {
+            input.focus();
+         });
+
+         scrollOutput();
+      </script>
+
+   </body>
+</html>
