@@ -74,8 +74,8 @@ func main() {
 
 	log.Println("📁 Template: ", templateFile)
 	log.Println("💾 Data file: ", dataFile)
-	log.Println("🚀 Server running on http://localhost:1111")
-	log.Fatal(http.ListenAndServe(":1111", nil))
+	log.Println("🚀 Server running on http://localhost:1112")
+	log.Fatal(http.ListenAndServe(":1112", nil))
 }
 
 func initializeStorage() {

@@ -19,7 +19,5 @@
   "about2": "C++/C#/.NET",
   "contacts": "Контакты:",
   "projects": "Проекты:",
-  "project1": "secure-proxy-go — защищённый прокси с TLS и аутентификацией",
-  "project2": "logstream-cli — потоковая обработка логов в реальном времени",
-  "project3": "configvault — шифрованное хранение конфигов"
+  "project1": "GO-CV + CLI заметки — этот проект"
 }
