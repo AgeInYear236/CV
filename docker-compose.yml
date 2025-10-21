@@ -1,0 +1,7 @@
+version: '3'
+services:
+  resume:
+    build: .
+    ports:
+      - "80:1112"
+    restart: always

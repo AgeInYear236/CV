@@ -2,16 +2,21 @@
   {
     "id": 1,
     "title": "learnGo",
-    "done": false
+    "done": true
   },
   {
     "id": 2,
     "title": "go backend",
-    "done": false
+    "done": true
   },
   {
     "id": 3,
     "title": "gi push",
+    "done": false
+  },
+  {
+    "id": 4,
+    "title": "docker",
     "done": false
   }
 ]
